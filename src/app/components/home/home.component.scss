@@ -1,17 +1,34 @@
-.container {
+.main-container {
+  display: grid;
+  grid-template-columns: 75% 25%;
+  grid-template-rows: 5vw 1fr 10vw;
+  grid-gap: 1em;
+
+  .file {
+	  display: block;
+  }
+}
+
+.head-row,
+.foot-row {
+  grid-column: 1 / span 2;
+}
+
+/* Demo Specific Styles */
+.main-container {
+  margin: 0 auto;
+  max-width: 100em;
   height: 100%;
+  padding: 1em 0;
+}
+
+.head-row,
+.content,
+aside,
+.foot-row {
+  background: #eaeaea;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-
-  background: url(../../../assets/background.jpg) no-repeat center fixed;
-  -webkit-background-size: cover; /* pour anciens Chrome et Safari */
-  background-size: cover; /* version standardisée */
-
-  .title {
-    color: white;
-    margin:0;
-    padding:50px 20px;
-  }
-
 }

@@ -1,5 +1,19 @@
-<div class="container">
-  <h1 class="title">
-    {{ 'PAGES.HOME.TITLE' | translate }}
-  </h1>
+<div class="main-container">
+	<div class="head-row">
+		<input type="text" class="path-input" [formControl]="pathControl" (keyup.enter)="changeDir(pathControl.value)" />
+	</div>
+	<div class="content">
+		<ng-container *ngFor="let file of files">
+			<div class="file" *ngIf="!file.isHidden">
+				<span>{{file.name}}</span>
+				<span>{{file.size}}</span>
+			</div>
+		</ng-container>
+	</div>
+	<aside>
+		Sidebar
+	</aside>
+	<div class="foot-row">
+		Footer
+	</div>
 </div>

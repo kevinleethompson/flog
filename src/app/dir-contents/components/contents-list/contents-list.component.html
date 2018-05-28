@@ -1,0 +1,10 @@
+<div class="contents-list-container">
+	<div class="file-list" fxLayout="column" fxFlexFill>
+		<ng-container *ngFor="let file of files">
+			<div class="file" *ngIf="!file.isHidden" fxLayout="row" fxLayoutAlign="space-between stretch">
+				<span>{{file.name}}</span>
+				<span>{{file.size}}</span>
+			</div>
+		</ng-container>
+	</div>
+</div>

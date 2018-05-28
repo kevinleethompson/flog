@@ -1,0 +1,16 @@
+.contents-list-container {
+	width: 100%;
+	height: 100%;
+}
+
+.file-list {
+	padding: 10px;
+
+	.file {
+		padding: 5px 15px;
+		margin: 3px 0;
+		background: #cdeecd;
+		box-shadow: 1px 1px 5px 1px #aaa;
+		border-radius: 3px;
+	}
+}

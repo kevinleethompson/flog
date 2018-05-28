@@ -1,34 +1,32 @@
 .main-container {
-  display: grid;
-  grid-template-columns: 75% 25%;
-  grid-template-rows: 5vw 1fr 10vw;
-  grid-gap: 1em;
-
-  .file {
-	  display: block;
-  }
+	display: grid;
+	grid-template-columns: 75% 25%;
+	grid-template-rows: 5vmin 1fr 10vmin;
 }
 
-.head-row,
-.foot-row {
-  grid-column: 1 / span 2;
+.foot-row,
+.head-row {
+	grid-column: 1 / span 2;
 }
-
 /* Demo Specific Styles */
 .main-container {
-  margin: 0 auto;
-  max-width: 100em;
-  height: 100%;
-  padding: 1em 0;
+	margin: 0 auto;
+	width: 100vw;
+	height: 100vh;
 }
 
-.head-row,
 .content,
-aside,
-.foot-row {
-  background: #eaeaea;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+.foot-row,
+.head-row,
+aside {
+	background: #eaeaea;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+
+app-contents-list {
+	width: 100%;
+	height: 100%;
 }

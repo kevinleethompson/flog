@@ -1,14 +1,9 @@
 <div class="main-container">
 	<div class="head-row">
-		<input type="text" class="path-input" [formControl]="pathControl" (keyup.enter)="changeDir(pathControl.value)" />
+		<app-navbar></app-navbar>
 	</div>
 	<div class="content">
-		<ng-container *ngFor="let file of files">
-			<div class="file" *ngIf="!file.isHidden">
-				<span>{{file.name}}</span>
-				<span>{{file.size}}</span>
-			</div>
-		</ng-container>
+		<app-contents-list></app-contents-list>
 	</div>
 	<aside>
 		Sidebar

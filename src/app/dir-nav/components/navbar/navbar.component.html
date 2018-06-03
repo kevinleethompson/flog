@@ -1,3 +1,5 @@
-<div class="navbar-container">
-	<input type="text" class="path-input" [formControl]="pathControl" (keyup.enter)="navigate(pathControl.value)" />
+<div class="navbar-container" fxLayout="row" fxLayoutAlign="start center">
+	<div class="nav-control" fxLayout="row" fxLayoutAlign="start center" fxFlex="1 1 auto">
+		<div #navInput contenteditable="true" class="path-input" highlightSyntax fxFlex="45" (keydown.enter)="navigate($event, navInput.innerText)"></div>
+	</div>
 </div>

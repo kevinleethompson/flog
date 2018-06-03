@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormControl } from '@angular/forms';
 import { DirNavService } from '../../services/dir-nav/dir-nav.service';
 
 @Component({
@@ -8,14 +7,17 @@ import { DirNavService } from '../../services/dir-nav/dir-nav.service';
 	styleUrls: ['./navbar.component.scss']
 })
 export class NavbarComponent implements OnInit {
-	private pathControl: FormControl;
 
-	constructor(private fb: FormBuilder, private navService: DirNavService) { }
+	constructor(private navService: DirNavService) { }
 
 	ngOnInit() {
-		this.pathControl = this.fb.control([""]);
+
 	}
 
-	navigate(path: string): void { console.log(path); this.navService.chDir(path); }
+	private navigate(e: Event, path: string): void {
+		e.preventDefault();
+		if (path.length == 0) return;
+		this.navService.chDir(path);
+	}
 
 }

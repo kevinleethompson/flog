@@ -1,12 +1,16 @@
 .main-container {
 	display: grid;
 	grid-template-columns: 75% 25%;
-	grid-template-rows: 5vmin 1fr 10vmin;
+	grid-template-rows: 10vmin minmax(50px, 100%) 10vmin;
+	box-sizing: border-box;
+	padding: 20px;
 }
 
 .foot-row,
 .head-row {
 	grid-column: 1 / span 2;
+	height: 100%;
+	width: 100%;
 }
 /* Demo Specific Styles */
 .main-container {
@@ -15,18 +19,32 @@
 	height: 100vh;
 }
 
-.content,
 .foot-row,
-.head-row,
-aside {
-	background: #eaeaea;
+.head-row {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
 }
+.content,
+aside {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: start;
+}
+
+app-navbar {
+	width: 100%;
+	height: 100%;
+}
 
 app-contents-list {
 	width: 100%;
-	height: 100%;
+	height: auto;
+	max-height: calc(100%);
+	background: #fff;
+	box-shadow: 1px 1px 5px 1px #aaa;
+	overflow-y: auto;
+	z-index: 1;
 }

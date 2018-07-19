@@ -10,10 +10,12 @@ import { catchError } from 'rxjs/operators';
 })
 export class ContentsListComponent implements OnInit {
 	private files: Object[] = [];
+	private currDir: string;
 
 	constructor(private navService: DirNavService) { }
 
 	ngOnInit() {
+		this.navService.cwd.subscribe(d => { this.currDir = d; })
 		this.navService.contents.pipe(
 				catchError(err => {console.log(err); return of(err);})
 			)
@@ -21,6 +23,10 @@ export class ContentsListComponent implements OnInit {
 				c => { console.log(c); this.files = c; },
 				err => { console.log(err); }
 			);
+	}
+
+	private navigate(path: string): void {
+		this.navService.chDir(this.currDir + "/" + path);
 	}
 
 }

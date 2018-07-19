@@ -3,10 +3,10 @@
 		<div class="files-header name-col"> Name </div>
 		<div class="files-header size-col"> Size </div>
 		<ng-container *ngFor="let file of files; let i = index">
-			<div class="file name-col" [class.file-highlight]="hoverFile == i" (mouseover)="hoverFile = i" (mouseout)="hoverFile = null" *ngIf="!file.isHidden">
+			<div class="file name-col" (click)="navigate(file.name)" [class.file-highlight]="hoverFile == i" (mouseover)="hoverFile = i" (mouseout)="hoverFile = null" *ngIf="!file.isHidden">
 				{{file.name}}
 			</div>
-			<div class="file size-col" [class.file-highlight]="hoverFile == i" (mouseover)="hoverFile = i" (mouseout)="hoverFile = null" *ngIf="!file.isHidden">
+			<div class="file size-col" (click)="navigate(file.name)" [class.file-highlight]="hoverFile == i" (mouseover)="hoverFile = i" (mouseout)="hoverFile = null" *ngIf="!file.isHidden">
 				{{file.size}}
 			</div>
 		</ng-container>

@@ -1,5 +1,7 @@
 <div class="navbar-container" fxLayout="row" fxLayoutAlign="start center">
 	<div class="nav-control" fxLayout="row" fxLayoutAlign="start center" fxFlex="1 1 auto">
+		<div class="nav-button"><</div>
+		<div class="nav-button">></div>
 		<div #navInput contenteditable="true" class="path-input" highlightSyntax fxFlex="45" (keydown.enter)="navigate($event, navInput.innerText)"></div>
 	</div>
 </div>

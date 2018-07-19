@@ -1,21 +1,58 @@
-import { Directive, Renderer2, ViewChild, ElementRef, OnInit, HostListener } from '@angular/core';
+import { Directive, Renderer2, ViewChild, ElementRef, OnInit, HostListener, OnDestroy } from '@angular/core';
 import { DirNavService } from '../../services/dir-nav/dir-nav.service';
+import { ElectronService } from '../../../providers/electron.service';
+import { ParsedPath } from 'path';
 
 @Directive({
 	selector: '[highlightSyntax]'
 })
-export class HighlightSyntaxDirective implements OnInit {
+export class HighlightSyntaxDirective implements OnInit, OnDestroy {
 
 	private textnavEl: any;
+	private changes: MutationObserver;
 	private keywords: RegExp = /^(for|in|while|do|done)$/;
 	private pathPattern: RegExp = /^([/]?)(((\w|\d)+[-_\s]*)+[/]?)*([\w|\d]+[\.]?[^.$])*$/;
 
-	constructor(private navService: DirNavService, private renderer: Renderer2, private el: ElementRef) { }
+	constructor(private _es: ElectronService, private navService: DirNavService, private renderer: Renderer2, private el: ElementRef) {
+		this.changes = new MutationObserver((mutations: MutationRecord[]) => {
+			console.log("once");
+			mutations.forEach((mutation: MutationRecord) => { console.log(mutation); });
+		});
+
+		this.changes.observe(el.nativeElement, {
+			attributes: false,
+			childList: true,
+			characterData: false
+		});
+	}
 
 	@HostListener('input') onInput() { this.updateEditor(); }
 
 	@HostListener('keydown', ['$event']) keyDown(e: KeyboardEvent) {
-		if (e.keyCode != 9 && e.keyCode != 39 && e.keyCode != 35) return;
+		this.handleKeyEvents(e);
+	}
+	@HostListener('mousedown', ['$event']) mouseDown(e) {
+		e.target.style.caretColor = "transparent";
+	}
+	@HostListener('mouseup', ['$event']) mouseUp(e) {
+		e.target.style.caretColor = "initial";
+	}
+	@HostListener('contextmenu', ['$event'])
+	@HostListener('click', ['$event']) clickInput(e) {
+		let sel = window.getSelection();
+		if (e.target.hasAttribute("highlightsyntax")) {
+			const el = sel.focusNode;
+			const children = el.childNodes;
+			if (sel.focusOffset == children.length && e.target.lastChild.id == "autocomplete") {
+				const eolNode = children[children.length - 2];
+				sel.collapse(eolNode, eolNode.childNodes.length);
+			}
+		}
+		//console.log(selectedElement)
+	}
+
+	private handleKeyEvents(e: KeyboardEvent) {
+		if (e.keyCode != 9 && e.keyCode != 13 && e.keyCode != 39 && e.keyCode != 35) return;
 		const sel = window.getSelection();
 		const range = sel.getRangeAt(0);
 		const selIsTextNode = range.startContainer.nodeType === 3;
@@ -51,30 +88,26 @@ export class HighlightSyntaxDirective implements OnInit {
 				sel.collapse(eolNode, eolNode.childNodes.length);
 			}
 		}
-	}
-	@HostListener('mousedown', ['$event']) mouseDown(e) {
-		e.target.style.caretColor = "transparent";
-	}
-	@HostListener('mouseup', ['$event']) mouseUp(e) {
-		e.target.style.caretColor = "initial";
-	}
-	@HostListener('contextmenu', ['$event'])
-	@HostListener('click', ['$event']) clickInput(e) {
-		let sel = window.getSelection();
-		if (e.target.hasAttribute("highlightsyntax")) {
-			const el = sel.focusNode;
-			const children = el.childNodes;
-			if (sel.focusOffset == children.length && e.target.lastChild.id == "autocomplete") {
-				const eolNode = children[children.length - 2];
-				sel.collapse(eolNode, eolNode.childNodes.length);
-			}
+		if (e.keyCode == 13) {
+			e.preventDefault();
+			const lastNode = children[children.length - 1];
+			sel.collapse(lastNode, lastNode.childNodes.length);
 		}
-		//console.log(selectedElement)
 	}
 
 	ngOnInit() {
 		this.textnavEl = this.el.nativeElement;
+		this.navService.cwd.subscribe(d => {
+			this.textnavEl.innerHTML = this.renderText(d);
+			const sel = window.getSelection();
+			sel.collapse(this.textnavEl, this.textnavEl.childNodes.length);
+			this.updateEditor();
+		});
 		this.updateEditor();
+	}
+
+	ngOnDestroy(): void {
+		this.changes.disconnect();
 	}
 
 	private rangeSelectsSingleNode(range) {
@@ -87,7 +120,6 @@ export class HighlightSyntaxDirective implements OnInit {
 	private getTextSegments(element) {
 		const textSegments = [];
 		Array.from(element.childNodes).forEach((node: any) => {
-			console.log(node);
 			if (node.id == "autocomplete") return;
 			switch (node.nodeType) {
 				case Node.TEXT_NODE:
@@ -155,14 +187,14 @@ export class HighlightSyntaxDirective implements OnInit {
 	private renderText(text) {
 		const words = text.split(/(\s+)/);
 		const output = words.map((word) => {
+			console.log(word);
 			if (word.match(this.keywords)) {
 				return `<span style='color:blue'>${word}</span>`;
 			} else if (word.match(this.pathPattern)) {
-				const startSlash = word.startsWith("/");
-				let pathSplit = word.split("/");
-				const autocomplete = this.navService.autocompleteDir(word);
-				pathSplit = pathSplit.map(segment => { return `<span style='color:rgb(117, 97, 154)'>${segment}</span>`; });
-				return autocomplete.length > 0 ? pathSplit.join("/") + `<span id="autocomplete" contenteditable="false" style='color:rgba(117, 97, 154, 0.35);user-select: none;pointer-events:none;overflow:visible;width:0;'>${autocomplete}</span>` : pathSplit.join("/");
+				const parsed = this._es.path.parse(word) as ParsedPath;
+				const autocomplete = this.navService.autocompleteDir(parsed);
+				const pathSplit = word.split(this._es.path.sep).map(segment => { return `<span style='color:rgb(117, 97, 154)'>${segment}</span>`; });
+				return autocomplete.length > 0 ? pathSplit.join("/") + `<span id="autocomplete" contenteditable="false" style='color:rgba(117, 97, 154, 0.35);user-select: none;pointer-events:none;overflow:visible;width:0;'>${autocomplete}</span>` : pathSplit.join(this._es.path.sep);
 			} else {
 				return word;
 			}

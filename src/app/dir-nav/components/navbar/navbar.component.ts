@@ -15,7 +15,6 @@ export class NavbarComponent implements OnInit {
 	}
 
 	private navigate(e: Event, path: string): void {
-		e.preventDefault();
 		if (path.length == 0) return;
 		this.navService.chDir(path);
 	}

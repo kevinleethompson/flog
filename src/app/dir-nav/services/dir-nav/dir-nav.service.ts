@@ -2,6 +2,7 @@ import { Injectable, OnInit } from '@angular/core';
 import { Observable, Subject, BehaviorSubject, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { ElectronService } from '../../../providers/electron.service';
+import { ParsedPath } from 'path';
 
 @Injectable({
 	providedIn: 'root'
@@ -9,54 +10,73 @@ import { ElectronService } from '../../../providers/electron.service';
 export class DirNavService {
 	private fs: any;
 	private dirSnapshot: string;
-	private currDir: Subject<string> = new BehaviorSubject(".");
+	private currDir: Subject<string> = new BehaviorSubject(this._es.path.resolve("."));
 	private dirContents: Subject<Object[]> = new BehaviorSubject([]);
 	get cwd() { return this.currDir.asObservable(); }
 	get contents(): Observable<Object[]> { return this.dirContents.asObservable(); }
 	private pathPattern: RegExp = /^([/]?)(((\w|\d)+[-_\s]*)+[/]?)*([\w|\d]+[\.]?[^.$])*$/;
 
-	constructor(private electronService: ElectronService) {
-		this.fs = electronService.fs;
+	constructor(private _es: ElectronService) {
+		this.fs = _es.fs;
 		this.init();
 	}
 
 	private init(): void {
+		const items = [];
 		this.cwd.subscribe(
 			d => {
 				this.dirSnapshot = d;
+				let count = 0;
+				this._es.klaw(d, { filter: this.fileAccessFilter.bind(this) })
+					.on('readable', function() {
+						let item
+						count++;
+						if (count % 1000 == 0) console.log(`Still working: ${count}`);
+						while ((item = this.read())) {
+							items.push(item);
+						}
+					})
+					.on('error', (err, item) => {
+						count++;
+						if (count % 1000 == 0) console.log(`Still working: ${count}`);
+						console.log(err.message)
+						console.log(item.path) // the file the error occurred on
+					})
+					.on('end', () => console.dir(items))
 				this.readDir(d);
 			},
 			err => { console.log(`err: ${err}`); }
 		);
 	}
 
-	public chDir(path: string): void {
-		console.log(path);
-		this.currDir.next(path);
+	private fileAccessFilter(path: string): boolean {
+		if (path.startsWith("/proc")) return false;
+		const fs = this.fs;
+		try {
+			fs.accessSync(path, fs.constants.F_OK | fs.constants.R_OK);
+			return true;
+		} catch(err) {
+			return false;
+		}
 	}
 
-	public autocompleteDir(path: string): string {
-		console.log(path);
-		if (!path.match(this.pathPattern)) return '';
+	public chDir(path: string): void {
+		const changed = this._es.path.resolve(path);
+		this.currDir.next(changed);
+	}
+
+	public autocompleteDir(path: ParsedPath): string {
 		try {
-			this.fs.accessSync(path);
+			// check if already a legit path, no need to autocomplete so return empty string
+			this.fs.accessSync(this._es.path.format(path));
 			return '';
-		} catch(err) {
-			let parentDir = this.dirSnapshot;
-			let subStr = path;
-			const splitIdx = path.lastIndexOf("/") + 1;
-			if (splitIdx > 0) {
-				parentDir = path.substring(0, splitIdx);
-				subStr = path.substring(splitIdx);
-			}
-			console.log(`parent: ${parentDir}`);
-			const files = this.fs.readdirSync(parentDir)
+		} catch (err) {
+			const files = this.fs.readdirSync(path.dir)
 				.filter(f => {
-					return subStr.length > 0 && f.startsWith(subStr);
+					return path.base.length > 0 && f.startsWith(path.base);
 				})
-				.map(f => f.replace(subStr, ''))
+				.map(f => f.replace(path.base, ''))
 				.sort();
-			console.log(files);
 			return files.length > 0 ? files.shift() : '';
 		}
 	}
@@ -64,11 +84,11 @@ export class DirNavService {
 	private readDir(path: string): void {
 		try {
 			const files = this.fs.readdirSync(path).map(f => {
-				const stats = this.fs.statSync(path + "/" + f);
-				return {name: f, isHidden: f.startsWith("."), isDir: stats.isDirectory(), isFile: stats.isFile(), size: this.stringifySizeBytes(stats.size)};
+				const stats = this.fs.statSync(this._es.path.join(path, f));
+				return { name: f, isHidden: f.startsWith("."), isDir: stats.isDirectory(), isFile: stats.isFile(), size: this.stringifySizeBytes(stats.size) };
 			});
 			this.dirContents.next(files);
-		} catch(err) {
+		} catch (err) {
 			this.dirContents.next(err);
 		}
 	}

@@ -6,3 +6,27 @@ html {
 	height: 100%;
 	font-family: Arial, sans-serif;
 }
+
+
+/* width */
+::-webkit-scrollbar {
+    width: 8px;
+	position: absolute;
+	background: transparent;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.2);
+	border-radius: 3px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0,0,0,0.3);
+}
